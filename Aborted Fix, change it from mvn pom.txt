@@ -1,3 +1,5 @@
+<-- This code fragment is from pom.xml, with minify plugin it will replace ${tealium.env} in *.js under specific path -->
+
 		<profile>
 			<id>cert</id>
 			<properties>
