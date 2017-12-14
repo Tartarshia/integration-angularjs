@@ -1,0 +1,64 @@
+		<profile>
+			<id>cert</id>
+			<properties>
+				<tealium.env>dev</tealium.env>
+			</properties>
+			<activation><activeByDefault>true</activeByDefault></activation>
+		</profile>
+		<profile>
+			<id>pre</id>
+			<properties>
+				<tealium.env>dev</tealium.env>
+			</properties>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<tealium.env>prod</tealium.env>
+			</properties>
+		</profile>
+		
+		
+
+						<!-- replace app.js for the app.js in /tmp -->
+						<resource>
+							<directory>src/main/webapp/home</directory>
+							<includes>
+								<include>**/*.js</include>
+							</includes>
+							<excludes>
+								<exclude>REPLACE_js.js</exclude>
+							</excludes>
+							<filtering>true</filtering>
+						</resource>
+						
+						
+
+						<resource>
+							<directory>src/main/minify_config/${route}</directory>
+							<targetPath>home</targetPath>
+							<filtering>true</filtering>
+							<includes>
+								<include>REPLACE_js.js</include>
+							</includes>
+						</resource>
+						<resource>
+							<directory>${project.build.directory}/tmp/home</directory>
+							<targetPath>home</targetPath>
+							<filtering>true</filtering>
+							<includes>
+								<include>app.js</include>
+							</includes>
+						</resource>
+						<resource>
+							<directory>src/main/webapp/home</directory>
+							<targetPath>home</targetPath>
+							<filtering>true</filtering>
+							<excludes>
+								<exclude>app.js</exclude>
+								<exclude>REPLACE_js.js</exclude>
+							</excludes>
+							<includes>
+								<include>**/*.html</include>
+							</includes>
+						</resource>
