@@ -1,3 +1,4 @@
+// jshint ignore: start
 /* TealiumHelper.data */
 
 angular.module('TealiumHelper.data', [])
@@ -42,7 +43,6 @@ angular.module('TealiumHelper.data', [])
 angular.module("TealiumHelper", ["TealiumHelper.data"])
 .provider("tealium", ["tealiumDataProvider", function( tealiumDataProvider ) {
   var config = {
-    environment: "dev",
     suppress_first_view: true
   };
 
@@ -56,12 +56,7 @@ angular.module("TealiumHelper", ["TealiumHelper.data"])
     setViewIdMap: tealiumDataProvider.setViewIdMap,
     addViewIdMapEntry: tealiumDataProvider.addViewIdMapEntry,
     $get: [ "tealiumData", "$location", function(tealiumData, $location) {
-      if (!config.account || !config.profile) {
-        throw new Error("account or profile value not set.  Please configure Tealium first");
-      }
-
-      this.setConfigValue( "script_src", "//tags.tiqcdn.com/utag/"+ config.account + "/"+ config.profile +"/"+ config.environment + "/utag.js" );
-
+      var configUrl = "http://" + $location.host() + ":" + $location.port() + "/api/resources/tealium/properties"; 
       var view = function( data ) {
         var data = data || tealiumData.getDataLayer( $location.path() );
         track( "view", data );
@@ -72,15 +67,38 @@ angular.module("TealiumHelper", ["TealiumHelper.data"])
         track( "link", data );
       };
 
+      var getParam = function ( configUrl ) {
+
+        if ( typeof configUrl == "undefined" ) {
+          return;
+        }
+
+        if ( typeof jQuery != "undefined" ) {
+          // use cross-browser getScript from jQuery by default
+          jQuery.ajax({
+            type: 'GET',
+            cache: true,
+            dataType: "json",
+            crossDomain: true,
+            url: configUrl,
+            success: function(json){
+                var param = json.data;
+                config.script_src = "//tags.tiqcdn.com/utag/"+param.TEALIUM_PROPERTY_ACCOUNT+"/"+param.TEALIUM_PROPERTY_PROFILE+"/"+param.TEALIUM_PROPERTY_ENVIRONMENT+"/utag.js";
+                getScript(config.script_src);
+              },error: function (error) {
+                console.error(error);
+            }
+          });
+        }
+      };
+      
       var getScript = function ( src, callback ) {
         var d = document;
         var o = { callback: callback || function(){} };
         var s, t;
-
         if ( typeof src == "undefined" ) {
           return;
         }
-
         if ( typeof jQuery != "undefined" ) {
           // use cross-browser getScript from jQuery by default
           jQuery.ajaxSetup({ cache: true });
@@ -122,6 +140,7 @@ angular.module("TealiumHelper", ["TealiumHelper.data"])
         setViewIdMap : tealiumDataProvider.setViewIdMap,
         addViewIdMapEntry : tealiumDataProvider.addViewIdMapEntry,
         run: function() {
+          getParam(configUrl);// force load URL parameters from service, then use URL to get utag.js 
           if ( typeof utag_data == "undefined" ) {
             window.utag_data = tealiumData.getDataLayer( $location.path() ) || {};
           }
@@ -206,4 +225,3 @@ angular.module('TealiumHelper.directive', ['TealiumHelper'])
     }
   };
 }]);
-
